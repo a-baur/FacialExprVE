@@ -4208,7 +4208,7 @@ MonoBehaviour:
   handLeftRotationOffset: {x: -90, y: 180, z: 0}
   handRightPositionOffset: {x: 0, y: 0, z: 0}
   handRightRotationOffset: {x: -90, y: 180, z: 0}
-  turnSmoothness: 1
+  turnSmoothness: 5
   mappingObjects: []
 --- !u!114 &3863498114647108352
 MonoBehaviour:
