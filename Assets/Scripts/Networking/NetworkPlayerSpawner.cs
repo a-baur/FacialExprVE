@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Photon.Pun;
+using Photon.Pun.UtilityScripts;
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.XR;
@@ -25,9 +26,6 @@ namespace Networking
             _gazeFocusLogger = FindObjectOfType<GazeFocusLogger>();
             _gameSettings = FindObjectOfType<GameSettings>();
 
-            // var xrLoader = XRGeneralSettings.Instance.Manager.activeLoader;
-            // _xrInput = xrLoader.GetLoadedSubsystem<XRInputSubsystem>();
-
             _spawnPoint1 = GameObject.Find("SpawnPoint_1").transform;
             _spawnPoint2 = GameObject.Find("SpawnPoint_2").transform;
 
@@ -40,38 +38,14 @@ namespace Networking
         {
             base.OnJoinedRoom();
 
-            int playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
-            Vector3 initPosition;
-            Quaternion initRotation;
+            int playerNumber = PhotonNetwork.LocalPlayer.ActorNumber;
 
-            Debug.Log($"[PHOTON] Player joined the room (Player count: {playerCount})");
-
-
-            // Define initial positions and rotations of players by spawning order.
-            switch (playerCount)
-            {
-                case 1:
-                    initPosition = _spawnPoint1.position;
-                    initRotation = _spawnPoint1.rotation;
-                    break;
-
-                case 2:
-                    initPosition = _spawnPoint2.position;
-                    initRotation = _spawnPoint1.rotation;
-                    break;
-
-                default:
-                    initPosition = new Vector3(1, 2, 3);
-                    initRotation = new Quaternion(0, 1, 0, 1);
-                    break;
-            }
+            Debug.Log($"[PHOTON] Joined the room as Player " + playerNumber);
 
             // Postion and rotation irrelevant, set with SetupAvatar function
-            _spawnedPlayerPrefab = PhotonNetwork.Instantiate(playerPrefab.name, initPosition, initRotation); 
+            _spawnedPlayerPrefab = PhotonNetwork.Instantiate(playerPrefab.name, new Vector3(0,0,0), new Quaternion(0, 0, 0, 0));
 
-            SetupAvatar(initPosition, initRotation);
-
-            Debug.LogError($"Player Position: {initPosition.x}, {initPosition.y}, {initPosition.z}");
+            SetupAvatar();
 
             // If gaze tracking is activated, pass instance of spawned player so it can be tracked.
             if (_gazeFocusLogger == null || !_gazeFocusLogger.activateGazeTracking) return;
@@ -99,15 +73,48 @@ namespace Networking
         /**
          * Set player position by moving XRRig.
         */
-        public void SetupAvatar(Vector3 targetPosition, Quaternion targetRotation)
+        public void SetupAvatar()
         {
-            Transform xrRig = FindObjectOfType<XRRig>().transform;
-            Transform avatarHead = xrRig.Find("Camera Offset/Main Camera");
+            Transform _spawnPoint1 = GameObject.Find("SpawnPoint_1").transform;
+            Transform _spawnPoint2 = GameObject.Find("SpawnPoint_2").transform;
 
-            Vector3 rigHeadOffset = xrRig.position - avatarHead.position;
+            int playerNumber = PhotonNetwork.LocalPlayer.ActorNumber;
+            Vector3 targetPosition;
+            Quaternion targetRotation;
+
+            // Define initial positions and rotations of players by spawning order.
+            switch (playerNumber)
+            {
+                case 1:
+                    targetPosition = _spawnPoint1.position;
+                    targetRotation = _spawnPoint1.rotation;
+                    break;
+
+                case 2:
+                    targetPosition = _spawnPoint2.position;
+                    targetRotation = _spawnPoint1.rotation;
+                    break;
+
+                default:
+                    targetPosition = new Vector3(1, 2, 3);
+                    targetRotation = new Quaternion(0, 1, 0, 1);
+                    break;
+            }
+
+            Transform playerPrefab = _spawnedPlayerPrefab.transform;
+
+            Transform xrRig = FindObjectOfType<XRRig>().transform;
+            Transform xrHead = xrRig.Find("Camera Offset/Main Camera");
+            Transform avatarHead = playerPrefab.Find("Rig 1/IKHead/IKHead_target");
+
+            Vector3 rigHeadOffset = xrRig.position - xrHead.position;
+            Vector3 avatarHeadOffset = playerPrefab.position - avatarHead.position;
 
             xrRig.position = targetPosition - rigHeadOffset;
             xrRig.rotation = targetRotation;
+
+            playerPrefab.position = avatarHead.position + avatarHeadOffset;
+
         }
     }
 }

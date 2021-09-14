@@ -11,6 +11,7 @@ using Debug = UnityEngine.Debug;
 using Avatar;
 using Networking;
 using Photon.Pun;
+using Photon.Pun.UtilityScripts;
 
 public class GameSettings : MonoBehaviour
 {
@@ -112,34 +113,8 @@ public class GameSettings : MonoBehaviour
     { 
         if (GUILayout.Button("Setup Character"))
         {
-            Transform _spawnPoint1 = GameObject.Find("SpawnPoint_1").transform;
-            Transform _spawnPoint2 = GameObject.Find("SpawnPoint_2").transform;
-
-            int playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
-            Vector3 initPosition;
-            Quaternion initRotation;
-
-            // Define initial positions and rotations of players by spawning order.
-            switch (playerCount)
-            {
-                case 1:
-                    initPosition = _spawnPoint1.position;
-                    initRotation = _spawnPoint1.rotation;
-                    break;
-
-                case 2:
-                    initPosition = _spawnPoint2.position;
-                    initRotation = _spawnPoint1.rotation;
-                    break;
-
-                default:
-                    initPosition = new Vector3(1, 2, 3);
-                    initRotation = new Quaternion(0, 1, 0, 1);
-                    break;
-            }
-
             NetworkPlayerSpawner nps = FindObjectOfType<NetworkPlayerSpawner>();
-            nps.SetupAvatar(initPosition, initRotation);
+            nps.SetupAvatar();
         }
     }
 }

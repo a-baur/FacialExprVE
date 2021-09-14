@@ -189,7 +189,13 @@ namespace ViveSR.anipal.Eye
                 }
             }
             if (valid)
+            {
                 EyeShapeTables = eyeShapeTables;
+            }
+            else
+            {
+                Debug.LogError("[SRanipal] Missing blendshapes for eye tracking. Facial animation unavailable!");
+            }
         }
 
         public void SetEyeShapeAnimationCurves(AnimationCurve[] eyebrowAnimationCurves)

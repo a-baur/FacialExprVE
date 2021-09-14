@@ -79,7 +79,13 @@ namespace ViveSR
                         }
                     }
                     if (valid)
+                    {
                         LipShapeTables = lipShapeTables;
+                    }
+                    else
+                    {
+                        Debug.LogError("[SRanipal] Missing blendshapes for lip tracking. Facial animation unavailable!");
+                    }
                 }
 
                 [PunRPC]

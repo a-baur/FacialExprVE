@@ -58,6 +58,8 @@ namespace Avatar
         // Photon
         [SerializeField] private bool disableLocalAvatar = true;
         [SerializeField] private Transform _head;
+        [SerializeField] private Transform _waist;
+        private Vector3 _initWaistRotation;
         private PhotonView _photonView;
 
 
@@ -84,6 +86,7 @@ namespace Avatar
 
         private void Start()
         {
+            _initWaistRotation = _waist.up;
             _photonView = GetComponent<PhotonView>();
 
             if (!_photonView.IsMine) return;
@@ -150,15 +153,8 @@ namespace Avatar
 
             if (!_photonView.IsMine) return;
 
-            // if(!_photonView.IsMine) Debug.Log($"Avatar Pos.: {transform.position}    |    Headtarget Pos.: {_headTarget.position}");
-            Vector3 autoHeadPositionOffset = transform.position - _head.position;
-            transform.position = _headTarget.position + autoHeadPositionOffset;
-        
-            transform.forward = Vector3.Lerp(
-                transform.forward,  // Lerp from current viewing angle
-                Vector3.ProjectOnPlane(_headTarget.forward, Vector3.up).normalized,  // Lerp toward camera angle
-                Time.deltaTime * turnSmoothness  // Lerp smoothness
-            );
+            // AdjustBodyTilt();
+            AdjustBodyPosition();
 
             foreach (MovementMapper mappingObj in mappingObjects)
             {
@@ -166,9 +162,30 @@ namespace Avatar
             }
         }
 
+        // Align tilt of body toward camera
+        void AdjustBodyTilt()
+        {
+            Vector3 directionVector = _headTarget.position - _waist.position;
+            // Debug.DrawRay(_waist.position, directionVector);
+            _waist.up = directionVector - _initWaistRotation;
+        }
+
+        // Move avatar toward camera.
+        void AdjustBodyPosition()
+        {
+            Vector3 autoHeadPositionOffset = transform.position - _head.position;
+            transform.position = _headTarget.position + autoHeadPositionOffset;
+
+            transform.forward = Vector3.Lerp(
+                transform.forward,  // Lerp from current viewing angle
+                Vector3.ProjectOnPlane(_headTarget.forward, Vector3.up).normalized,  // Lerp toward camera angle
+                Time.deltaTime * turnSmoothness  // Lerp smoothness
+            );
+        }
+
+        // Deactivate rendering of own network avatar
         void DisableCharacterRenderer()
         {
-            // Deactivate rendering of own network avatar
             foreach (Renderer item in GetComponentsInChildren<Renderer>())
             {
                 item.enabled = false;
@@ -176,9 +193,9 @@ namespace Avatar
             _charRenderer = false;
         }
 
+        // Activate rendering of own network avatar
         void EnableCharacterRenderer()
         {
-            // Deactivate rendering of own network avatar
             foreach (Renderer item in GetComponentsInChildren<Renderer>())
             {
                 item.enabled = true;
