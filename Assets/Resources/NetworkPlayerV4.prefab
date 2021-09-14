@@ -4203,12 +4203,12 @@ MonoBehaviour:
   disableLocalAvatar: 0
   _head: {fileID: 5731406455147671751}
   _waist: {fileID: 9025004908427444241}
-  headPositionOffset: {x: 0, y: 0, z: 0}
+  headPositionOffset: {x: 0, y: -0.07, z: -0.14}
   handLeftPositionOffset: {x: 0, y: 0, z: 0}
   handLeftRotationOffset: {x: -90, y: 180, z: 0}
   handRightPositionOffset: {x: 0, y: 0, z: 0}
   handRightRotationOffset: {x: -90, y: 180, z: 0}
-  turnSmoothness: 5
+  turnSmoothness: 1
   mappingObjects: []
 --- !u!114 &3863498114647108352
 MonoBehaviour:

@@ -83,14 +83,14 @@ namespace Networking
             Quaternion targetRotation;
 
             // Define initial positions and rotations of players by spawning order.
-            switch (playerNumber)
+            switch (playerNumber%2)
             {
                 case 1:
                     targetPosition = _spawnPoint1.position;
                     targetRotation = _spawnPoint1.rotation;
                     break;
 
-                case 2:
+                case 0:
                     targetPosition = _spawnPoint2.position;
                     targetRotation = _spawnPoint1.rotation;
                     break;
