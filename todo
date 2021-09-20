@@ -1,0 +1,3 @@
+- SRanipal Skripts mit unvollständigen Blendshapes ermöglichen
+  - SetLipShapeTables / SetLipShapeTables anpassen, SkinnedMeshRenderer == null -> continue statt break
+- Mehrere Facetracker testen
