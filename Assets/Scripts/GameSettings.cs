@@ -1,17 +1,11 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
-using UnityEngine.Serialization;
 using ViveSR.anipal.Eye;
 using ViveSR.anipal.Lip;
 using UnityEngine.XR;
 using Debug = UnityEngine.Debug;
 using Avatar;
 using Networking;
-using Photon.Pun;
-using Photon.Pun.UtilityScripts;
 
 public class GameSettings : MonoBehaviour
 {
@@ -24,13 +18,13 @@ public class GameSettings : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Process[] pname = Process.GetProcessesByName("sr_runtime");
+        /*Process[] pname = Process.GetProcessesByName("sr_runtime");
         if (pname.Length == 0)
         {
             Debug.LogError("[SRanipal] Runtime Not Running. Facial Tracking Will Not Be Available!");
             enableEyeTracking = false;
             enableLipTracking = false;
-        }
+        }*/
 
         if (!IsVRAvailable())
         {

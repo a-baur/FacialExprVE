@@ -423,6 +423,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 7301772024800861764, guid: 8a80effb98293cb45aa047dd9a172d64, type: 3}
+      propertyPath: enableEyeTracking
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7301772024800861764, guid: 8a80effb98293cb45aa047dd9a172d64, type: 3}
+      propertyPath: enableLipTracking
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7301772024800861765, guid: 8a80effb98293cb45aa047dd9a172d64, type: 3}
       propertyPath: m_RootOrder
       value: 6
@@ -518,7 +526,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EnableLip: 1
-  EnableLipVersion: 1
+  EnableLipVersion: 0
 --- !u!114 &1202009037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -533,7 +541,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EnableEye: 1
   EnableEyeDataCallback: 0
-  EnableEyeVersion: 1
+  EnableEyeVersion: 0
 --- !u!4 &1211788827 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 880970725214738984, guid: c60edd51c065ceb46b345849a03bc106, type: 3}
