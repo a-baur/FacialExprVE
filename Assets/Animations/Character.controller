@@ -31,14 +31,14 @@ AnimatorController:
   - serializedVersion: 5
     m_Name: Base Layer
     m_StateMachine: {fileID: 8174248667308280756}
-    m_Mask: {fileID: 31900000, guid: 061b77321545dda42996a24128f975e8, type: 2}
+    m_Mask: {fileID: 0}
     m_Motions:
     - serializedVersion: 2
       m_State: {fileID: 7589253700953259994}
       m_Motion: {fileID: -203655887218126122, guid: 8365736241d1fbb498e66b09a9a349fd, type: 3}
     m_Behaviours: []
     m_BlendingMode: 0
-    m_SyncedLayerIndex: 1
+    m_SyncedLayerIndex: -1
     m_DefaultWeight: 0
     m_IKPass: 0
     m_SyncedLayerAffectsTiming: 0
@@ -46,7 +46,7 @@ AnimatorController:
   - serializedVersion: 5
     m_Name: Sitting Layer
     m_StateMachine: {fileID: 2636831592353977999}
-    m_Mask: {fileID: 0}
+    m_Mask: {fileID: 31900000, guid: 061b77321545dda42996a24128f975e8, type: 2}
     m_Motions: []
     m_Behaviours: []
     m_BlendingMode: 0
@@ -116,7 +116,7 @@ AnimatorState:
   m_Transitions: []
   m_StateMachineBehaviours: []
   m_Position: {x: 50, y: 50, z: 0}
-  m_IKOnFeet: 0
+  m_IKOnFeet: 1
   m_WriteDefaultValues: 1
   m_Mirror: 0
   m_SpeedParameterActive: 0

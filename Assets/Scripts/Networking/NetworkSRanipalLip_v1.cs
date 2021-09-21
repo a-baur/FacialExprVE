@@ -20,7 +20,7 @@ namespace ViveSR.anipal.Lip
 
         private void Start()
         {
-
+            _photonView = GetComponent<PhotonView>();
             if (!SRanipal_Lip_Framework.Instance.EnableLip)
             {
                 Debug.LogError("[SRanipal] Lip disabled!");
@@ -74,7 +74,8 @@ namespace ViveSR.anipal.Lip
                     for (int shape = 0; shape < lipShapeTables[table].lipShapes.Length; ++shape)
                     {
                         // Check that LipShape is within range of possible LipShapes
-                        // Can only really fail, if version 1 and 2 are mixed up?
+                        // Original: Fail when Blendshape is assigned unvalid LipShape (e.g. None)
+                        // Modified: Ignore unvalid Blendshapes. Not every Blendshape needs to be assigned to LipShape.
                         LipShape lipShape = lipShapeTables[table].lipShapes[shape];
                         if (lipShape > LipShape.Max || lipShape < 0)
                         {
