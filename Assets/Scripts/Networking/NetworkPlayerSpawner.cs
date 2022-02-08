@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Photon.Pun;
 using Photon.Pun.UtilityScripts;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.XR;
@@ -12,7 +14,10 @@ namespace Networking
 {
     public class NetworkPlayerSpawner : MonoBehaviourPunCallbacks
     {
-        public GameObject playerPrefab;
+        public GameObject playerFemaleSRanipal;
+        public GameObject playerFemaleLipSync;
+        public GameObject playerMaleSRanipal;
+        public GameObject playerMaleLipSync;
         private GameSettings _gameSettings;
         private GameObject _spawnedPlayerPrefab;
         private GazeFocusLogger _gazeFocusLogger;
@@ -25,13 +30,6 @@ namespace Networking
         {
             _gazeFocusLogger = FindObjectOfType<GazeFocusLogger>();
             _gameSettings = FindObjectOfType<GameSettings>();
-
-            _spawnPoint1 = GameObject.Find("SpawnPoint_1").transform;
-            _spawnPoint2 = GameObject.Find("SpawnPoint_2").transform;
-
-            if (_spawnPoint1 == null | _spawnPoint2 == null)
-                Debug.LogError("[PHOTON] No spawn points found!");
-
         }
 
         public override void OnJoinedRoom()
@@ -42,17 +40,51 @@ namespace Networking
 
             Debug.Log($"[PHOTON] Joined the room as Player " + playerNumber);
 
-            // Postion and rotation irrelevant, set with SetupAvatar function
-            _spawnedPlayerPrefab = PhotonNetwork.Instantiate(playerPrefab.name, new Vector3(0,0,0), new Quaternion(0, 0, 0, 0));
-
-            SetupAvatar();
-
-            // If gaze tracking is activated, pass instance of spawned player so it can be tracked.
-            if (_gazeFocusLogger == null || !_gazeFocusLogger.activateGazeTracking) return;
-            foreach (Transform child in _spawnedPlayerPrefab.transform)
+            GameObject playerPrefab;
+            
+            // Select player by gender and lip sync settings
+            switch (_gameSettings.gender)
             {
-                _gazeFocusLogger.AddFocusObject(child);
+                case 'm' when _gameSettings.useLipSync:
+                    playerPrefab = playerMaleLipSync;
+                    break;
+                
+                case 'm' when !_gameSettings.useLipSync:
+                    playerPrefab = playerMaleSRanipal;
+                    break;
+                
+                case 'f' when _gameSettings.useLipSync:
+                    playerPrefab = playerFemaleLipSync;
+                    break;
+                
+                case 'f' when !_gameSettings.useLipSync:
+                    playerPrefab = playerFemaleSRanipal;
+                    break;
+                    
+                
+                default:
+                    Debug.LogError($"[GameSettings] No player prefab for gender '{_gameSettings.gender}' and LipSync mode '{_gameSettings.useLipSync}'");
+                    playerPrefab = new GameObject();
+                    break;
             }
+
+            // Spawn player prefab
+            // Postion and rotation irrelevant, set with SetupAvatar function
+            _spawnedPlayerPrefab = PhotonNetwork.Instantiate(
+                playerPrefab.name, new Vector3(0, 0, 0), new Quaternion(0, 0, 0, 0));
+
+            SetupAvatar();  // Move avatar to position
+
+
+            /** 
+            var otherPlayers = GetOtherPlayers();
+
+            foreach (GameObject player in otherPlayers)
+            {
+                Debug.Log("Other Players: " + player.name);
+                SetupGazeLogger(player);  // Make avatar target of gaze tracker
+            }
+            */
         }
 
         public override void OnLeftRoom()
@@ -71,50 +103,79 @@ namespace Networking
         }
 
         /**
-         * Set player position by moving XRRig.
+         * Spawn player by joining order.
         */
         public void SetupAvatar()
         {
-            Transform _spawnPoint1 = GameObject.Find("SpawnPoint_1").transform;
-            Transform _spawnPoint2 = GameObject.Find("SpawnPoint_2").transform;
+            GameObject _spawnPoint1 = GameObject.Find("SpawnPoint_1");
+            GameObject _spawnPoint2 = GameObject.Find("SpawnPoint_2");
+
+            if (_spawnPoint1 == null | _spawnPoint2 == null)
+                Debug.LogError("[PHOTON] Scene needs two spawnpoints!");
 
             int playerNumber = PhotonNetwork.LocalPlayer.ActorNumber;
-            Vector3 targetPosition;
-            Quaternion targetRotation;
 
-            // Define initial positions and rotations of players by spawning order.
-            switch (playerNumber%2)
+            switch (playerNumber % 2)
             {
                 case 1:
-                    targetPosition = _spawnPoint1.position;
-                    targetRotation = _spawnPoint1.rotation;
+                    SetupSpawn(_spawnPoint1);
                     break;
 
                 case 0:
-                    targetPosition = _spawnPoint2.position;
-                    targetRotation = _spawnPoint1.rotation;
-                    break;
-
-                default:
-                    targetPosition = new Vector3(1, 2, 3);
-                    targetRotation = new Quaternion(0, 1, 0, 1);
+                    SetupSpawn(_spawnPoint2);
                     break;
             }
+        }
 
-            Transform playerPrefab = _spawnedPlayerPrefab.transform;
+        public void SetupGazeLogger(GameObject playerPrefab)
+        {   
+            int gazeLayer =  LayerMask.NameToLayer("GazeObject");
 
-            Transform xrRig = FindObjectOfType<XRRig>().transform;
-            Transform xrHead = xrRig.Find("Camera Offset/Main Camera");
-            Transform avatarHead = playerPrefab.Find("Rig 1/IKHead/IKHead_target");
+            // If gaze tracking is activated, pass all children with layer 'GazeObject'.
+            if (_gazeFocusLogger == null || !_gazeFocusLogger.activateGazeTracking) return;
 
-            Vector3 rigHeadOffset = xrRig.position - xrHead.position;
-            Vector3 avatarHeadOffset = playerPrefab.position - avatarHead.position;
+            foreach (Transform child in playerPrefab.transform)
+            { 
+                if (child.gameObject.layer == gazeLayer)
+                {
+                    _gazeFocusLogger.AddFocusObject(child.transform);
+                }
+            }
+        }
 
-            xrRig.position = targetPosition - rigHeadOffset;
-            xrRig.rotation = targetRotation;
+        /**
+         * Setup player at spawnpoint and activat its teleportation anchor
+        */
+        private void SetupSpawn(GameObject spawnPoint)
+        {
+            XRRig xrRig = FindObjectOfType<XRRig>(); 
 
-            playerPrefab.position = avatarHead.position + avatarHeadOffset;
+            Vector3 target_position = spawnPoint.transform.position;
+            target_position.y = 1.2f;
+            Vector3 target_forward = spawnPoint.transform.forward;
+            
+            xrRig.MoveCameraToWorldLocation(target_position);
+            xrRig.MatchRigUpCameraForward(Vector3.up, target_forward);
+        }
 
+        private List<GameObject> GetOtherPlayers()
+        {
+            var result = new List<GameObject>();
+
+            var photonViews = FindObjectsOfType<PhotonView>();
+            foreach (var view in photonViews)
+            {
+                var player = view.Owner;
+
+                //Objects in the scene don't have an owner, its means view.owner will be null
+                if (player != null && !view.IsMine)
+                {
+                    var playerPrefabObject = view.gameObject;
+                    result.Add(playerPrefabObject);
+                }
+            }
+
+            return result;
         }
     }
 }

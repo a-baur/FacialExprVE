@@ -4022,7 +4022,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8041351447582032503}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b2d8418b0b9634b1892b0268dd9c2743, type: 3}
   m_Name: 
@@ -4201,6 +4201,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   disableLocalAvatar: 0
+  to_disable: []
   _head: {fileID: 5731406455147671751}
   _waist: {fileID: 9025004908427444241}
   headPositionOffset: {x: 0, y: -0.07, z: -0.14}

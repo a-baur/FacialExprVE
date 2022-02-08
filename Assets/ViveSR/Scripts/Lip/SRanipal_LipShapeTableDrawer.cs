@@ -46,17 +46,16 @@ namespace ViveSR
                                 }
                             }
                         }
-
-                        newLabelPosition.y = position.y; // EditorGUIUtility.singleLineHeight;
+                        
+                        float offset = (skinnedMesh.sharedMesh.blendShapeCount / 2 + 0.5f) * EditorGUIUtility.singleLineHeight;
                         for (int i = 0; i < skinnedMesh.sharedMesh.blendShapeCount; ++i)
                         {
                             SerializedProperty propLipShape = propLipShapes.GetArrayElementAtIndex(i);
-                            // newLabelPosition.y = newFieldPosition.y;
+                            newLabelPosition.y = newFieldPosition.y - offset;
                             string elementName = skinnedMesh.sharedMesh.GetBlendShapeName(i);
                             EditorGUI.LabelField(newLabelPosition, "  " + elementName);
                             EditorGUI.PropertyField(newFieldPosition, propLipShape, GUIContent.none);
                             newFieldPosition.y += EditorGUIUtility.singleLineHeight;
-                            newLabelPosition.y += EditorGUIUtility.singleLineHeight;
                         }
                     }
                     EditorGUI.EndProperty();

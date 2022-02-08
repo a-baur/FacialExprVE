@@ -110,7 +110,13 @@ namespace ViveSR.anipal.Lip
             {
                 int targetIndex = (int)lipShapeTable.lipShapes[i];
                 if (targetIndex > (int)LipShape.Max || targetIndex < 0) continue;
-                lipShapeTable.skinnedMeshRenderer.SetBlendShapeWeight(i, weighting[(LipShape)targetIndex] * 100);
+                var lipShape = (LipShape)targetIndex;
+                if (!weighting.ContainsKey(lipShape))
+                {
+                    Debug.Log("[SRanipal EYE NETWORKED]LipShape " + lipShape + " not in weightings");
+                    continue;
+                }
+                lipShapeTable.skinnedMeshRenderer.SetBlendShapeWeight(i, weighting[lipShape] * 100);
             }
         }
                 

@@ -9,9 +9,11 @@ using Networking;
 
 public class GameSettings : MonoBehaviour
 {
-    public string subjectID;
+    public char gender;
+    public bool useLipSync;
     public bool enableEyeTracking;
     public bool enableLipTracking;
+    public string subjectID = "";
     private bool _lastEyeTrackingState;
     private bool _lastLipTrackingState;
     
@@ -44,7 +46,8 @@ public class GameSettings : MonoBehaviour
             SetTracking();
         }
     }
-    
+
+
     private void Awake () 
     {
         DontDestroyOnLoad(gameObject);
@@ -104,12 +107,51 @@ public class GameSettings : MonoBehaviour
     }
 
     private void OnGUI()
-    { 
-        if (GUILayout.Button("Setup Character"))
+    {
+        GUILayout.Label("Subject ID: ");
+        subjectID = GUILayout.TextField(subjectID, 25);
+
+        if (GUILayout.Button("Start Logging"))
         {
-            NetworkPlayerSpawner nps = FindObjectOfType<NetworkPlayerSpawner>();
-            nps.SetupAvatar();
+            if (subjectID.Length == 0)
+            {
+                Debug.LogError("[GameSettings] Must assign subject id before logging.");
+                return;
+            }
+
+            FaceShapeLogger fsl = FindObjectOfType<FaceShapeLogger>();
+            GazeFocusLogger gfl = FindObjectOfType<GazeFocusLogger>();
+            if (fsl && gfl)
+            {
+                fsl.StartLogging();
+                gfl.StartLogging();
+            }
+            else
+            {
+                if (!fsl) Debug.LogError("FaceShapeLogger not found!");
+                if (!gfl) Debug.LogError("GazeFocusLogger not found!");
+            }
         }
+
+        if (GUILayout.Button("Write GazeFocus Logs"))
+        {
+            GazeFocusLogger gfl = FindObjectOfType<GazeFocusLogger>();
+            if (gfl) gfl.WriteLogs();
+            Debug.LogError("Written GazeFocus logs");
+        }
+
+        if (GUILayout.Button("Quit Application"))
+        {
+            #if UNITY_EDITOR
+                // Application.Quit() does not work in the editor so
+                // UnityEditor.EditorApplication.isPlaying need to be set to false to end the game
+                UnityEditor.EditorApplication.isPlaying = false;
+            #else
+                Application.Quit();
+            #endif
+        }
+        
+
     }
 }
 

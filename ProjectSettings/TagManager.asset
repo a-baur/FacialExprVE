@@ -15,9 +15,9 @@ TagManager:
   - Avatar
   - 
   - StereoRender_Ignore
-  - 
-  - 
-  - 
+  - XRTelport
+  - GazeObject
+  - GazeIgnore
   - 
   - 
   - 

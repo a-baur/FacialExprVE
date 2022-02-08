@@ -15,6 +15,7 @@ namespace ViveSR.anipal.Eye
     public class NetworkSRanipalEye_v1 : MonoBehaviour
     {
         [SerializeField] private Transform[] EyesModels = new Transform[0];
+        [SerializeField] private Transform Head;
         [SerializeField] private List<EyeShapeTable> EyeShapeTables;
         /// <summary>
         /// Customize this curve to fit the blend shapes of your avatar.
@@ -32,7 +33,6 @@ namespace ViveSR.anipal.Eye
         public bool NeededToGetData = true;
         private Dictionary<EyeShape, float> EyeWeightings = new Dictionary<EyeShape, float>();
         private AnimationCurve[] EyebrowAnimationCurves = new AnimationCurve[(int)EyeShape.Max];
-        private GameObject[] EyeAnchors;
         private const int NUM_OF_EYES = 2;
         private static EyeData eyeData = new EyeData();
         private bool eye_callback_registered = false;
@@ -42,6 +42,8 @@ namespace ViveSR.anipal.Eye
         private void Start()
         {
             _photonView = GetComponent<PhotonView>();
+            if (!_photonView.IsMine) return;
+
             /**if (!SRanipal_Eye_Framework.Instance.EnableEye)
             {
                 Debug.LogError("[SRanipal] Eye disabled!");
@@ -103,7 +105,7 @@ namespace ViveSR.anipal.Eye
                     SRanipal_Eye.GetEyeWeightings(out EyeWeightings);
 
                 Dictionary<byte, float> binEyeWeightings = BinaryEyeWeightings(EyeWeightings);
-                _photonView.RPC("UpdateEyeShapes", RpcTarget.All, binEyeWeightings);
+                _photonView.RPC(nameof(UpdateEyeShapes), RpcTarget.All, binEyeWeightings); 
             }
             else
             {
@@ -114,7 +116,7 @@ namespace ViveSR.anipal.Eye
                 }
 
                 Dictionary<byte, float> binEyeWeightings = BinaryEyeWeightings(EyeWeightings);
-                _photonView.RPC("UpdateEyeShapes", RpcTarget.All, binEyeWeightings);
+                _photonView.RPC(nameof(UpdateEyeShapes), RpcTarget.All, binEyeWeightings);
                 return;
             }
 
@@ -132,12 +134,11 @@ namespace ViveSR.anipal.Eye
                 else if (SRanipal_Eye.GetGazeRay(GazeIndex.RIGHT, out GazeOriginCombinedLocal, out GazeDirectionCombinedLocal)) { }
 
             }
+            
+            _photonView.RPC(nameof(UpdateGazeRay), RpcTarget.All, GazeDirectionCombinedLocal);
 
-            if (_photonView.IsMine)
-            {
-                _photonView.RPC("UpdateGazeRay", RpcTarget.All, GazeDirectionCombinedLocal);
-            }
         }
+
         private void Release()
         {
             if (eye_callback_registered == true)
@@ -146,18 +147,12 @@ namespace ViveSR.anipal.Eye
                 eye_callback_registered = false;
             }
         }
-        private void OnDestroy()
-        {
-            DestroyEyeAnchors();
-        }
 
         public void SetEyesModels(Transform leftEye, Transform rightEye)
         {
             if (leftEye != null && rightEye != null)
             {
                 EyesModels = new Transform[NUM_OF_EYES] { leftEye, rightEye };
-                DestroyEyeAnchors();
-                CreateEyeAnchors();
             }
         }
 
@@ -210,7 +205,8 @@ namespace ViveSR.anipal.Eye
         {
             for (int i = 0; i < EyesModels.Length; ++i)
             {
-                Vector3 target = EyeAnchors[i].transform.TransformPoint(gazeDirectionCombinedLocal);
+                // Use head direction as default, GazeDirection as deviation
+                Vector3 target = Head.transform.TransformPoint(gazeDirectionCombinedLocal);
                 EyesModels[i].LookAt(target);
             }
         }
@@ -245,28 +241,6 @@ namespace ViveSR.anipal.Eye
             }
         }
 
-        private void CreateEyeAnchors()
-        {
-            EyeAnchors = new GameObject[NUM_OF_EYES];
-            for (int i = 0; i < NUM_OF_EYES; ++i)
-            {
-                EyeAnchors[i] = new GameObject();
-                EyeAnchors[i].name = "EyeAnchor_" + i;
-                EyeAnchors[i].transform.SetParent(gameObject.transform);
-                EyeAnchors[i].transform.localPosition = EyesModels[i].localPosition;
-                EyeAnchors[i].transform.localRotation = EyesModels[i].localRotation;
-                EyeAnchors[i].transform.localScale = EyesModels[i].localScale;
-            }
-        }
-
-        private void DestroyEyeAnchors()
-        {
-            if (EyeAnchors != null)
-            {
-                foreach (var obj in EyeAnchors)
-                    if (obj != null) Destroy(obj);
-            }
-        }
         private static void EyeCallback(ref EyeData eye_data)
         {
             eyeData = eye_data;

@@ -56,7 +56,9 @@ namespace Avatar
     public class XRAvatarController : MonoBehaviour
     {
         // Photon
-        [SerializeField] private bool disableLocalAvatar = true;
+        [SerializeField] private bool noHeadMode = true;  // Disable all renderers in to_disable
+        [SerializeField] private bool onlyHandsMode = false;  // Disable all renderers, show only xr hands
+        [SerializeField] List<GameObject> to_disable = new List<GameObject>();
         [SerializeField] private Transform _head;
         [SerializeField] private Transform _waist;
         private Vector3 _initWaistRotation;
@@ -141,17 +143,29 @@ namespace Avatar
                 mappingObj.Init();
             }
 
-            if (disableLocalAvatar && _charRenderer && _photonView.IsMine)
-                DisableCharacterRenderer();
+            if (_charRenderer && _photonView.IsMine)
+            {
+                // Also en- and disable GazeObject-colliders, so own character is not tracked
+                if (noHeadMode) DisableRenderers();
+                if (onlyHandsMode) DisableAllButHands();
+            }
         }
 
         // Update is called once per tick
         void LateUpdate()
         {
-            if (disableLocalAvatar && _charRenderer && _photonView.IsMine) DisableCharacterRenderer();
-            if (!disableLocalAvatar && !_charRenderer && _photonView.IsMine) EnableCharacterRenderer();
-
             if (!_photonView.IsMine) return;
+
+            if (_charRenderer)
+            {
+                if (noHeadMode) DisableRenderers();
+                else if (onlyHandsMode) DisableAllButHands();
+            }
+            else
+            {
+                if (!noHeadMode && !onlyHandsMode) EnableAllRenderers();
+                else if (!noHeadMode && !onlyHandsMode) EnableAllRenderers();
+            }
 
             // AdjustBodyTilt();
             AdjustBodyPosition();
@@ -184,21 +198,79 @@ namespace Avatar
         }
 
         // Deactivate rendering of own network avatar
-        void DisableCharacterRenderer()
+        void DisableAllButHands()
         {
             foreach (Renderer item in GetComponentsInChildren<Renderer>())
             {
-                item.enabled = false;
+                // Disable body parts that distract in camera view (head)
+                // if (to_disable.Contains(item.gameObject)) item.enabled = false;  
+                item.enabled = false;  // Only hands test
+            }
+
+            // == Only hands test ==
+            SkinnedMeshRenderer rightHandRenderer = _xrRightController.GetComponentInChildren<SkinnedMeshRenderer>();
+            SkinnedMeshRenderer leftHandRenderer = _xrLeftController.GetComponentInChildren<SkinnedMeshRenderer>();
+            if (rightHandRenderer && leftHandRenderer)
+            {
+                rightHandRenderer.enabled = true;
+                leftHandRenderer.enabled = true;
+            }
+            else
+            {
+                Debug.LogError("[XRAvatarController] Can not find hand models in XRRig");
+            }
+            // =====================
+
+            foreach (Collider item in GetComponentsInChildren<Collider>())
+            {
+                // Disable all GazeObject colliders so own character doesnt get logged in GazeFocusLogger
+                if (item.gameObject.layer == LayerMask.NameToLayer("GazeObject")) item.enabled = false;  
             }
             _charRenderer = false;
         }
 
-        // Activate rendering of own network avatar
-        void EnableCharacterRenderer()
+        // Deactivate rendering of own network avatar
+        void DisableRenderers()
         {
             foreach (Renderer item in GetComponentsInChildren<Renderer>())
             {
+                // Disable body parts that distract in camera view (head)
+                if (to_disable.Contains(item.gameObject)) item.enabled = false;  
+            }
+
+            foreach (Collider item in GetComponentsInChildren<Collider>())
+            {
+                // Disable all GazeObject colliders so own character doesnt get logged in GazeFocusLogger
+                if (item.gameObject.layer == LayerMask.NameToLayer("GazeObject")) item.enabled = false;
+            }
+            _charRenderer = false;
+        }
+
+
+        // Activate rendering of own network avatar
+        void EnableAllRenderers()
+        {
+            // Disable controller hands if avatar is visible
+            SkinnedMeshRenderer rightHandRenderer = _xrRightController.GetComponentInChildren<SkinnedMeshRenderer>();
+            SkinnedMeshRenderer leftHandRenderer = _xrLeftController.GetComponentInChildren<SkinnedMeshRenderer>();
+            if (rightHandRenderer && leftHandRenderer)
+            {
+                rightHandRenderer.enabled = false;
+                leftHandRenderer.enabled = false;
+            }
+            else
+            {
+                Debug.LogError("[XRAvatarController] Can not find hand models in XRRig");
+            }
+
+            foreach (Renderer item in GetComponentsInChildren<Renderer>())
+            {
                 item.enabled = true;
+            }
+            foreach (Collider item in GetComponentsInChildren<Collider>())
+            {
+                if (item.gameObject.layer == LayerMask.NameToLayer("GazeObject"))  item.enabled = true;
+
             }
             _charRenderer = true;
         }
